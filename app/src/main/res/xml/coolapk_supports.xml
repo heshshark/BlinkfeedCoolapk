@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pluginpackage certification="0F00" version="0">
+<plugin version="0">
+    <feature>BlinkFeedStreamPlugin</feature>
+    <class>ce.hesh.blinkfeedcoolapk.sync.CoolApkSocialPluginService</class>
+    <description>coolapk_app_name</description>
+    <plugin_meta>ce.hesh.blinkfeedcoolapk.account</plugin_meta>
+</plugin>
+</pluginpackage>
