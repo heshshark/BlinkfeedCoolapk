@@ -18,6 +18,7 @@ import com.htc.lib2.opensense.social.SocialContract.Stream;
 import com.htc.lib2.opensense.social.SocialContract.SyncCursors;
 import com.htc.lib2.opensense.social.SocialContract.SyncTypeContract;
 import com.htc.lib2.opensense.social.SyncType;
+import com.socks.library.KLog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +30,7 @@ import ce.hesh.blinkfeedcoolapk.Common;
 
 public class MergeHelper {
     private static final int BATCH_LIMIT = 30;
-    private static final String LOG_TAG = MergeHelper.class.getSimpleName();
+    private static final String LOG_TAG = "CoolMergeHelper";
     private static MergeHelper sInstance = null;
     private ContentResolver mResolver;
 
@@ -75,14 +76,17 @@ public class MergeHelper {
                 addInsertOrMergeSyncCursorsOperation(operations, account.name, account.type, syncType, startTime, endTime);
             }
             if (operations.size() > 0) {
+                KLog.i(LOG_TAG,SocialContract.CONTENT_AUTHORITY);
                 applyBatchAndReset(SocialContract.CONTENT_AUTHORITY, operations);
             }
+            KLog.i(LOG_TAG,Stream.CONTENT_URI);
             this.mResolver.notifyChange(Stream.CONTENT_URI, null);
         }
     }
 
     private void handleInsertStream(Account account, ArrayList<ContentProviderOperation> operations, List<ContentValues> values) {
         if (values != null) {
+            KLog.i(LOG_TAG,"CoolFeed Length:"+values.size());
             HashMap<String, String> existingSyncTypeMap = buildExistingSyncTypeMap(account, values);
             HashMap<String, String> existingBundleIdMap = buildExistingBundleIdMap(account, values);
             for (ContentValues value : values) {
@@ -366,8 +370,8 @@ public class MergeHelper {
         cursorsValue.put(Common.SyncCursorsColumn.COLUMN_ACCOUNT_NAME_STR, accountName);
         cursorsValue.put(Common.SyncCursorsColumn.COLUMN_ACCOUNT_TYPE_STR, accountType);
         cursorsValue.put(Common.SyncCursorsColumn.COLUMN_SYNC_TYPE, syncType);
-        cursorsValue.put(Common.SyncCursorsColumn.COLUMN_START_TIME_LONG, Long.valueOf(startTime));
-        cursorsValue.put(Common.SyncCursorsColumn.COLUMN_END_TIME_LONG, Long.valueOf(endTime));
+        cursorsValue.put(Common.SyncCursorsColumn.COLUMN_START_TIME_LONG, startTime);
+        cursorsValue.put(Common.SyncCursorsColumn.COLUMN_END_TIME_LONG, endTime);
         operations.add(ContentProviderOperation.newInsert(SyncCursors.CONTENT_URI).withValues(cursorsValue).build());
     }
 

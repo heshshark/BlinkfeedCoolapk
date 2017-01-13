@@ -8,9 +8,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-
 import ce.hesh.blinkfeedcoolapk.ui.LoginActivity;
 
+/**
+ *
+ */
 public  class Authenticator extends AbstractAccountAuthenticator {
 
     private Context context;
@@ -29,8 +31,9 @@ public  class Authenticator extends AbstractAccountAuthenticator {
     @Override
     public Bundle addAccount(AccountAuthenticatorResponse response, String accountType, String authTokenType, String[] requiredFeatures, Bundle options) throws NetworkErrorException {
         Log.i(LOG_TAG,"addAccount");
+        //添加账户时调用LoginActivity
         Intent intent = new Intent(this.context, LoginActivity.class);
-        intent.setFlags(786745);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra("accountAuthenticatorResponse", response);
         Bundle bundle2 = new Bundle();
         bundle2.putParcelable("intent", intent);

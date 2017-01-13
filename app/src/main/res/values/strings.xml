@@ -1,4 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">BlinkFeedCoolApk</string>
+    <string name="htc_coolapk_app_name">HTC Sense CoolApk</string>
     <string name="coolapk_updates">Update</string>
+    <string name="error_pic_load_faild_1">Please Retry</string>
+    <string name="msg_few_minutes_ago">minutes ago</string>
+    <string name="msg_today">Today</string>
+    <string name="msg_yesterday">Yesterday</string>
+    <string name="disable_comments">No more Reply</string>
+    <string name="loading_cmts">Loading Comment</string>
+    <string name="attitudes_format">%s Like</string>
+    <string name="comment_format">%s Comment</string>
+    <string name="msg_image_copyed">Picture link copied</string>
+    <string name="timeline_detail">Detail</string>
+    <string name="msg_now">Just now</string>
+    <string name="app_name">CoolApk</string>
+    <string name="biz_add_fav">Please wait...</string>
+    <string name="biz_fav_success">Favorite success!</string>
+    <string name="biz_remove_fav">Removing...</string>
+    <string name="biz_fav_removed">Remove success</string>
+    <string name="biz_fav_remove_faild">Remove failed</string>
 </resources>

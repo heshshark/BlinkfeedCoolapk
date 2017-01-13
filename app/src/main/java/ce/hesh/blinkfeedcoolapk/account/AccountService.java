@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
+/**
+ * 账户服务，用于添加酷安登录账户
+ */
 public class AccountService extends Service {
     private Authenticator a;
     private final static String LOG_TAG = "AccountService";

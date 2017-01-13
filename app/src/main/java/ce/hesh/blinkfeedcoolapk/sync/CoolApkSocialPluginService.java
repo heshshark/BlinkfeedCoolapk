@@ -1,6 +1,5 @@
 package ce.hesh.blinkfeedcoolapk.sync;
 
-import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Service;
@@ -8,18 +7,12 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.htc.lib2.opensense.social.AbstractSocialPlugin;
 import com.htc.lib2.opensense.social.SocialManager;
 import com.htc.lib2.opensense.social.SocialPluginResponse;
@@ -32,15 +25,25 @@ import java.util.List;
 
 import ce.hesh.blinkfeedcoolapk.Common;
 import ce.hesh.blinkfeedcoolapk.bean.FeedInfo;
+import ce.hesh.blinkfeedcoolapk.ui.DetailActivity;
+import ce.hesh.blinkfeedcoolapk.ui.DetailFragment;
 import ce.hesh.blinkfeedcoolapk.ui.LoginActivity;
-import ce.hesh.blinkfeedcoolapk.util.GetCoolJson;
+import ce.hesh.blinkfeedcoolapk.util.InfoUtil;
 import ce.hesh.blinkfeedcoolapk.util.MergeHelper;
+
+import static ce.hesh.blinkfeedcoolapk.Common.morePattern;
+import static ce.hesh.blinkfeedcoolapk.Common.normalUrlPattern;
+import static ce.hesh.blinkfeedcoolapk.Common.qemotionPattern;
+import static ce.hesh.blinkfeedcoolapk.Common.topicPattern;
+import static ce.hesh.blinkfeedcoolapk.Common.userPattern;
+import static ce.hesh.blinkfeedcoolapk.util.NetUtil.getFeedInfo;
+import static ce.hesh.blinkfeedcoolapk.util.NetUtil.getFeedInfos;
 
 
 /**
+ * blinkfeed社交插件服务
  * Created by Hesh on 2016/11/29.
  */
-
 
 public class CoolApkSocialPluginService extends Service {
 
@@ -49,6 +52,9 @@ public class CoolApkSocialPluginService extends Service {
     private SocialPluginStub mStub = new SocialPluginStub();
 
 
+    /**
+     * 继承自blinkfeed的社交插件接口，执行获取账号，更新feed流，发布动态的功能
+     */
     private class SocialPluginStub extends AbstractSocialPlugin {
         private SocialPluginStub() {
         }
@@ -57,7 +63,7 @@ public class CoolApkSocialPluginService extends Service {
         public Bundle getDataSources(SocialPluginResponse response, String[] features) {
             KLog.d("getDataSources");
             Account[] accounts = AccountManager.get(CoolApkSocialPluginService.this.mContext).getAccountsByType(Common.ACCOUNT_TYPE);
-            KLog.d("Account exist:"+String.valueOf(accounts.length>0));
+            KLog.d("Account exist:" + String.valueOf(accounts.length > 0));
             Bundle bundle = new Bundle();
             bundle.putParcelableArray(SocialManager.KEY_ACCOUNTS, accounts);
             Bundle properties = new Bundle();
@@ -79,7 +85,7 @@ public class CoolApkSocialPluginService extends Service {
                 result.putBoolean(SocialManager.KEY_BOOLEAN_RESULT, true);
                 return result;
             }
-            return CoolApkSocialPluginService.this.syncSnsActivityStreams(bundle.getLong(SocialManager.KEY_OFFSET), accounts, bundle);
+            return CoolApkSocialPluginService.this.syncSnsActivityStreams(bundle.getLong(SocialManager.KEY_OFFSET), accounts);
 
         }
 
@@ -99,14 +105,25 @@ public class CoolApkSocialPluginService extends Service {
 
     public void onCreate() {
         super.onCreate();
-        KLog.d( "CoolApkSocialPluginService----onCreate");
+        KLog.d("CoolApkSocialPluginService----onCreate");
     }
 
-
-    private Bundle syncSnsActivityStreams(long offset, Account[] accounts, Bundle options) {
+    /**
+     * 将获取的feedinfo信息写入blinkfeed数据库
+     *
+     * @param offset   刷新的偏移量，从头开始刷新为零，从尾刷新为当前显示最后一条feed的时间戳
+     * @param accounts 要写入的账户
+     * @return 带有写入成功与否信息的bundle
+     */
+    private Bundle syncSnsActivityStreams(long offset, Account[] accounts) {
         KLog.d(" stream with offset:" + offset);
         Bundle bundle = new Bundle();
-        List<ContentValues> feeds = getStream(offset);
+        if (offset != 0) {
+            KLog.d("sync stream before,do nothing");
+            bundle.putBoolean(SocialManager.KEY_BOOLEAN_RESULT, false);
+            return bundle;
+        }
+        List<ContentValues> feeds = getStream();
         if (feeds == null || feeds.size() <= 0) {
             KLog.d("sync stream fail");
             bundle.putBoolean(SocialManager.KEY_BOOLEAN_RESULT, false);
@@ -115,13 +132,10 @@ public class CoolApkSocialPluginService extends Service {
             long currentTime = System.currentTimeMillis();
             KLog.d("start writing to db");
             MergeHelper instance = MergeHelper.getInstance(this);
-            if (offset == 0) {
-                j = currentTime;
-            } else {
-                j = offset;
-            }
+            j = currentTime;
+            instance.deleteAllFromDb(Common.ACCOUNT_TYPE);
             instance.mergeStreamToDb(j,
-                    ((ContentValues) feeds.get(feeds.size() - 1)).getAsLong(Common.StreamColumn.COLUMN_TIMESTAMP_LONG),
+                    feeds.get(feeds.size() - 1).getAsLong(Common.StreamColumn.COLUMN_TIMESTAMP_LONG),
                     accounts[0], feeds,
                     new String[]{SocialManager.SYNC_TYPE_HIGHLIGHTS});
             KLog.d("finish writing to db");
@@ -130,101 +144,130 @@ public class CoolApkSocialPluginService extends Service {
         return bundle;
     }
 
-
+    /**
+     * 获取当前登录的账户，若有则返回
+     *
+     * @param context 当前服务的context
+     * @return 返回账户
+     */
     private static Account getLoginAccount(Context context) {
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return null;
-        }
         Account[] accounts = AccountManager.get(context).getAccountsByType(Common.ACCOUNT_TYPE);
-        KLog.d("get account of type length = com.tencent.mm.account " + (accounts == null ? null : Integer.valueOf(accounts.length)));
-        if (accounts == null || accounts.length <= 0) {
+        KLog.d("get account of type length = ce.hesh.blinkfeedcoolapk.account " + accounts.length);
+        if (accounts.length <= 0) {
             return null;
         }
         return accounts[0];
     }
 
-
-    private List<ContentValues> getStream(long offset) {
+    /**
+     * 获取json字符串转换为相应的ContentValues
+     *
+     * @return ContentValues集合
+     */
+    private List<ContentValues> getStream() {
         Exception e;
         Throwable th;
         List<ContentValues> list = null;
+
         try {
-            KLog.d("start getting feed from internet");
-            String json = GetCoolJson.getJsonFromInternet();
-            JsonParser parser = new JsonParser();
-            JsonObject obj = parser.parse(json).getAsJsonObject();
-            JsonArray array = obj.getAsJsonArray("data");
-            Gson gson = new Gson();
-            List<FeedInfo> feedInfos = new ArrayList<>();
-            for (int i = 0; i < array.size(); i++) {
-                JsonElement j = array.get(i);
-                FeedInfo feedInfo = gson.fromJson(j, FeedInfo.class);
-                feedInfos.add(feedInfo);
+            KLog.d("Start getting feed from internet");
+            String Cookies = InfoUtil.getCookie();
+            Account account = getLoginAccount(this);
+            //若账户不存在或cookies不存在则跳转至登录界面
+            if (account == null || Cookies ==null) {
+                Intent intent = new Intent(this.mContext, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
             }
-            if (feedInfos.size() > 0) {
-                KLog.d("feedinfos size = " + feedInfos.size());
-                List<ContentValues> list2 = new ArrayList(feedInfos.size());
+            List<FeedInfo> feedInfos = getFeedInfos(Common.LIST_FEED_URL);
+            if (feedInfos != null && feedInfos.size() > 0) {
+                KLog.d("Feedinfos size = " + feedInfos.size());
+                List<ContentValues> list2 = new ArrayList<>(feedInfos.size());
                 try {
-                    Account account = getLoginAccount(this);
                     for (FeedInfo feedInfo : feedInfos) {
-                        String feedId = feedInfo.getId();
-                        ContentValues value = new ContentValues();
-                        String name = feedInfo.getUsername();
-                        value.put(Common.StreamColumn.COLUMN_POSTER_NAME_STR, name);
-                        value.put(Common.StreamColumn.COLUMN_ACCOUNT_NAME_STR, account.name);
-                        value.put(Common.StreamColumn.COLUMN_ACCOUNT_TYPE_STR, Common.ACCOUNT_TYPE);
-                        value.put(Common.StreamColumn.COLUMN_CLICK_ACTION_STR, getClickActionString(feedId));
-                        value.put(Common.StreamColumn.COLUMN_TIMESTAMP_LONG, System.currentTimeMillis());
-                        value.put(Common.StreamColumn.COLUMN_SYNC_TYPE_STR, SocialManager.SYNC_TYPE_HIGHLIGHTS);
-                        String description = feedInfo.getMessage();
-                        String image = feedInfo.getPic();
-                        if (image != null && image.startsWith("/storage")) {
-                            image = "file://" + image;
+                        //feed流为发现类型则不入库
+                        if (!feedInfo.getType().equals("3")) {
+                            ContentValues value = new ContentValues();
+                            String feedId = feedInfo.getId();
+                            String name = feedInfo.getUsername();
+                            value.put(Common.StreamColumn.COLUMN_POST_ID_STR, feedId);
+                            value.put(Common.StreamColumn.COLUMN_POSTER_NAME_STR, name);
+                            value.put(Common.StreamColumn.COLUMN_AVATAR_URL_STR, feedInfo.getUserAvatar());
+                            value.put(Common.StreamColumn.COLUMN_ACCOUNT_NAME_STR, account != null ? account.name : "Error");
+                            value.put(Common.StreamColumn.COLUMN_ACCOUNT_TYPE_STR, Common.ACCOUNT_TYPE);
+                            value.put(Common.StreamColumn.COLUMN_CLICK_ACTION_STR, getClickActionString(feedId));
+                            value.put(Common.StreamColumn.COLUMN_TIMESTAMP_LONG, feedInfo.getDateline() + "000");
+                            value.put(Common.StreamColumn.COLUMN_SYNC_TYPE_STR, SocialManager.SYNC_TYPE_HIGHLIGHTS);
+                            String image = feedInfo.getPic();
+                            if (!TextUtils.isEmpty(image)) {
+                                image = feedInfo.getPic() + Common.MIDDLE_PIC_BASE;
+                            }
+                            if (TextUtils.isEmpty(image) && feedInfo.getSourceFeed() != null && !TextUtils.isEmpty(feedInfo.getSourceFeed().getPic())) {
+                                image = feedInfo.getSourceFeed().getPic() + Common.MIDDLE_PIC_BASE;
+                            }
+                            value.put(Common.StreamColumn.COLUMN_COVER_URI_MQ_STR, image);
+                            value.put("stream_type", Common.TYPE_PHOTO);
+
+                            String description = feedInfo.getMessage();
+
+                            if (feedInfo.getSourceFeed() != null && feedInfo.getSourceFeed().getMessage() != null && feedInfo.getSourceFeed().getUsername() != null) {
+                                description = description + "//" + "@" + feedInfo.getSourceFeed().getUsername() + ":" + feedInfo.getSourceFeed().getMessage();
+                            }
+
+                            description = description.replace("<!--break-->", "");
+                            description = description.replace("&#039;", "'");
+                            description = description.replace("&lt;", "<");
+                            description = description.replace("&gt;", ">");
+                            description = qemotionPattern.matcher(description).replaceAll("[$1]");
+                            description = userPattern.matcher(description).replaceAll("$1");
+                            description = morePattern.matcher(description).replaceAll("$1");
+                            description = normalUrlPattern.matcher(description).replaceAll("$1");
+                            description = topicPattern.matcher(description).replaceAll("$1");
+
+
+                            value.put(Common.StreamColumn.COLUMN_TITLE_STR, description);
+                            value.put(Common.StreamColumn.COLUMN_POST_ID_STR, feedId);
+                            list2.add(value);
                         }
-                        value.put(Common.StreamColumn.COLUMN_COVER_URI_MQ_STR, image);
-                        value.put("stream_type", 2);
-                        value.put(Common.StreamColumn.COLUMN_TITLE_STR, description);
-                        value.put(Common.StreamColumn.COLUMN_POST_ID_STR, feedId);
-                        list2.add(value);
                     }
 
                     list = list2;
                 } catch (Exception e2) {
                     e = e2;
-                    list = list2;
+                    Log.e(LOG_TAG, "error=" + e);
                 } catch (Throwable th2) {
                     th = th2;
-                    list = list2;
+                    Log.e(LOG_TAG, "error=" + th);
                 }
             }
         } catch (Exception e3) {
             e = e3;
-            try {
-                Log.e(LOG_TAG, "error=" + e);
-                return list;
-            } catch (Throwable th3) {
-                th = th3;
-            }
+            Log.e(LOG_TAG, "error=" + e);
         }
         return list;
     }
 
-
-    private String getClickActionString(String feedId) {
-        Intent intent = new Intent("");
-        intent.putExtra("ID", feedId);
-        return GsonUtils.getGson().toJson(new MenuUtils.SimpleMenuItem(0, Common.PLUGIN_PACKAGE_NAME, 0, 0, intent));
+    /**
+     * 返回点击后的操作字符串
+     *
+     * @param feedID   当前点击feed流id
+     * @return 执行的操作字符串, blinkfeed将其转化为点击事件
+     */
+    private String getClickActionString(String feedID) {
+        String detailUrl = Common.FEED_DETAIL_URL_PREF + feedID;
+        FeedInfo feedInfo = getFeedInfo(detailUrl);
+        if (feedInfo == null)
+            return "Error";
+        Gson gson = new Gson();
+        String feed_string = gson.toJson(feedInfo);
+        Intent intent = new Intent(this.mContext, DetailActivity.class);
+        intent.putExtra("className", DetailFragment.class.getName());
+        intent.putExtra("args", feed_string);
+        return GsonUtils.getGson().toJson(new MenuUtils.SimpleMenuItem(0, null, 0, 0, intent));
     }
 
 
-    @Nullable
+    @org.jetbrains.annotations.Nullable
     @Override
     public IBinder onBind(Intent intent) {
         KLog.d("onBlind");

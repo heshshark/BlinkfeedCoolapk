@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:tag="layout/item_feed_resize_imge_0">
+
+    <ImageView
+        android:id="@+id/img_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/gif_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom|center"
+        android:alpha="0.7"
+        android:background="?colorAccent"
+        android:gravity="center"
+        android:paddingLeft="2.0dip"
+        android:paddingRight="2.0dip"
+        android:tag="binding_2"
+        android:text="GIF"
+        android:textSize="10.0sp" />
+</FrameLayout>

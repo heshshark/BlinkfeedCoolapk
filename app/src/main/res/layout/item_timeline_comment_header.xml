@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/txtVisiable"
+        style="@style/TextSubhead"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dip"
+        android:layout_marginTop="8dip"
+        android:textColor="?attr/text_subhead"
+        android:visibility="gone" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dip"
+        android:paddingLeft="16dip"
+        android:paddingRight="16dip">
+
+        <org.aisen.android.ui.widget.CircleImageView
+            android:id="@+id/imgPhoto"
+            android:layout_width="42dip"
+            android:layout_height="42dip"
+            android:layout_marginRight="8dip"
+            android:src="@drawable/coolapk" />
+
+        <TextView
+            android:id="@+id/txtName"
+            style="@style/TextTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/imgPhoto" />
+
+
+        <TextView
+            android:id="@+id/timeInfo"
+            style="@style/TextSubhead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtName"
+            android:layout_toRightOf="@id/imgPhoto"
+            android:layout_marginTop="2dip" />
+
+        <TextView
+            android:id="@+id/txtDesc"
+            style="@style/TextSubhead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtName"
+            android:layout_marginTop="2dip"
+            android:layout_toRightOf="@id/timeInfo" />
+
+        <TextView
+            android:id="@+id/txtFrom"
+            style="@style/TextSubhead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtName"
+            android:layout_marginTop="2dip"
+            android:singleLine="true"
+            android:layout_toRightOf="@id/txtDesc" />
+
+        <ce.hesh.blinkfeedcoolapk.ui.widget.CoolTextView
+            android:id="@+id/txtContent"
+            style="@style/TextBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/imgPhoto"
+            android:layout_marginTop="10dip"
+            android:lineSpacingExtra="4dip"
+            android:paddingBottom="8dip"
+            android:textSize="16sp" />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/layReStatusContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:orientation="vertical"
+        android:paddingLeft="16dip"
+        android:paddingRight="16dip">
+
+        <RelativeLayout
+            android:id="@+id/layRe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <View
+                android:id="@+id/layReDivider"
+                android:layout_width="match_parent"
+                android:layout_height="1.5dip"
+                android:layout_marginBottom="8dip"
+                android:background="@color/divider_timeline_item" />
+
+            <ce.hesh.blinkfeedcoolapk.ui.widget.CoolTextView
+                android:id="@+id/txtReContent"
+                style="@style/TextBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/layReDivider"
+                android:lineSpacingExtra="4dip"
+                android:textSize="16sp" />
+
+        </RelativeLayout>
+
+        <ce.hesh.blinkfeedcoolapk.ui.widget.TimelinePicsView
+            android:id="@+id/layPicturs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dip">
+
+            <!--org.aisen.weibo.sina.ui.widget.GifHintImageView-->
+            <ce.hesh.blinkfeedcoolapk.ui.widget.GifHintImageView
+                android:id="@+id/img01"
+                style="@style/timelinePicture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ce.hesh.blinkfeedcoolapk.ui.widget.GifHintImageView
+                android:id="@+id/img02"
+                style="@style/timelinePicture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ce.hesh.blinkfeedcoolapk.ui.widget.GifHintImageView
+                android:id="@+id/img03"
+                style="@style/timelinePicture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ce.hesh.blinkfeedcoolapk.ui.widget.GifHintImageView
+                android:id="@+id/img04"
+                style="@style/timelinePicture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ce.hesh.blinkfeedcoolapk.ui.widget.GifHintImageView
+                android:id="@+id/img05"
+                style="@style/timelinePicture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ce.hesh.blinkfeedcoolapk.ui.widget.GifHintImageView
+                android:id="@+id/img06"
+                style="@style/timelinePicture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ce.hesh.blinkfeedcoolapk.ui.widget.GifHintImageView
+                android:id="@+id/img07"
+                style="@style/timelinePicture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ce.hesh.blinkfeedcoolapk.ui.widget.GifHintImageView
+                android:id="@+id/img08"
+                style="@style/timelinePicture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ce.hesh.blinkfeedcoolapk.ui.widget.GifHintImageView
+                android:id="@+id/img09"
+                style="@style/timelinePicture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </ce.hesh.blinkfeedcoolapk.ui.widget.TimelinePicsView>
+
+    </LinearLayout>
+</LinearLayout>

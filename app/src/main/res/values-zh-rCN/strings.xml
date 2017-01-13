@@ -1,4 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">BlinkFeedCoolApk</string>
+    <string name="htc_coolapk_app_name">HTC Sense CoolApk</string>
     <string name="coolapk_updates">更新</string>
+    <string name="error_pic_load_faild_1">请重试</string>
+    <string name="disable_comments">没有更多评论了</string>
+    <string name="comment_format">%s 评论</string>
+    <string name="attitudes_format">%s 赞</string>
+    <string name="loading_cmts">评论载入中</string>
+    <string name="msg_few_minutes_ago">分钟前</string>
+    <string name="msg_now">刚刚</string>
+    <string name="msg_today">今天</string>
+    <string name="msg_yesterday">昨天</string>
+    <string name="timeline_detail">详情</string>
+    <string name="msg_image_copyed">图片链接已复制</string>
+    <string name="app_name">酷安</string>
+    <string name="biz_add_fav">正在收藏</string>
+    <string name="biz_fav_success">收藏成功</string>
+    <string name="biz_remove_fav">正在取消收藏</string>
+    <string name="biz_fav_removed">取消收藏成功</string>
+    <string name="biz_fav_remove_faild">取消收藏失败</string>
 </resources>
